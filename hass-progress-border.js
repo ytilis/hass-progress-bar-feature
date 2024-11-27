@@ -8,47 +8,74 @@ console.info(
   "color: white; font-weight: bold; background: steelblue"
 );
 
-window.customUI = {
-// Install the hooks for updating states, entity cards, and state badges
-  installCustomHooks() {
-    window.customUI.addCardHook('hui-tile-card');
-    window.customUI.addCardHook('hui-entity-card');
-  },
+class ProgressBorder {
+  constructor() {
+    this.installCardHooks();
+  }
+
+  installCardHooks() {
+    // Hook into some existing card lifecycle update methods
+    // TODO: Find a better way to handle this dynamically. Possibly iterating over the custom element registry
+    [
+      'hui-tile-card',
+      'hui-entity-card',
+      'mushroom-alarm-control-panel-card',
+      'mushroom-climate-card',
+      'mushroom-cover-card',
+      'mushroom-entity-card',
+      'mushroom-fan-card',
+      'mushroom-humidifier-card',
+      'mushroom-light-card',
+      'mushroom-lock-card',
+      'mushroom-media-player-card',
+      'mushroom-number-card',
+      'mushroom-person-card',
+      'mushroom-select-card',
+      'mushroom-title-card',
+      'mushroom-update-card',
+      'mushroom-vacuum-card',
+      'mushroom-template-card',
+    ].forEach(this.addCardHook);
+  }
 
   addCardHook(cardType) {
     customElements.whenDefined(cardType).then(() => {
       const card = customElements.get(cardType);
       if (!card) return;
+
       if (card.prototype?.updated) {
-        const originalUpdated = card.prototype.updated;
-        card.prototype.updated = function customUpdated(changedProps) {
-            if (
-              !changedProps.has('_config') ||
-              !changedProps.has('hass')
-            ) {
-              return;
-            }
-            const { _config, hass } = this;
-            const entityId = _config?.entity;
-            const states = hass?.states;
-            const progress = _config.progress;
-
-            if (progress) {
-              const progressBar = window.customUI.processProgress(progress, entityId, states);
-              window.customUI.addProgressBorder(progressBar, cardType, this);
-            }
-
-            originalUpdated.call(this, changedProps);
-        }
+        ProgressBorder.hijackUpdated(card, cardType);
       }
-  });
-  },
+    });
+  }
 
-  processProgress(progress, entityId, states) {
+  static hijackUpdated(card, cardType) {
+    const originalUpdated = card.prototype.updated;
+    card.prototype.updated = function progressBarUpdated(changedProps) {
+        if (
+          !changedProps.has('_config') ||
+          !changedProps.has('hass')
+        ) {
+          return;
+        }
+        const { _config, hass } = this;
+        const { entity, progress } = _config;
+        const { states } = hass;
+
+        if (progress) {
+          const progressBar = ProgressBorder.processProgress(progress, entity, states);
+          ProgressBorder.addProgressBorder(progressBar, this, cardType);
+        }
+
+        originalUpdated.call(this, changedProps);
+    }
+  }
+
+  static processProgress(progress, entityId, states) {
     const {
       entity = entityId,
-      height = '3px',
       position = 'bottom',
+      size = '3px',
       time,
     } = progress;
     
@@ -66,88 +93,67 @@ window.customUI = {
         }
       }
 
-      if (time) {
-        if (time.initial || time.remaining) {
-          if (!time.initial || !time.remaining) {
-            window.customUI.warn('time.initial & time.remaining are co-dependent');
-            return;
-          }
-          const initial = new Date(time.initial);
-          const remaining = new Date(time.remaining);
-          const total = remaining - initial;
-          const elapsed = new Date() - initial;
-          percentage = Math.round((elapsed / total) * 100);
-        }
+      // if (time) {
+      //   if (time.initial || time.remaining) {
+      //     if (!time.initial || !time.remaining) {
+      //       ProgressBorder.warn('time.initial & time.remaining are co-dependent');
+      //       return;
+      //     }
+      //     const initial = new Date(time.initial);
+      //     const remaining = new Date(time.remaining);
+      //     const total = remaining - initial;
+      //     const elapsed = new Date() - initial;
+      //     percentage = Math.round((elapsed / total) * 100);
+      //   }
   
-        if (time.start || time.end) {
-          if (!time.start || !time.end) {
-            window.customUI.warn('time.start & time.end are co-dependent');
-            return;
-          }
-          const start = new Date(time.start);
-          const end = new Date(time.end);
-          const total = end - start;
-          const elapsed = new Date() - start;
-          percentage = Math.round((elapsed / total) * 100);
-        }
-      }
+      //   if (time.start || time.end) {
+      //     if (!time.start || !time.end) {
+      //       ProgressBorder.warn('time.start & time.end are co-dependent');
+      //       return;
+      //     }
+      //     const start = new Date(time.start);
+      //     const end = new Date(time.end);
+      //     const total = end - start;
+      //     const elapsed = new Date() - start;
+      //     percentage = Math.round((elapsed / total) * 100);
+      //   }
+      // }
     }
     
     if (color === 'meter') {
-      color = `hsl(${percentage}, 100%, 40%)`;
-      // color = `hsl(calc(${percentage} * 1.3), 100%, 40%)`;
+      // We multiply by 1.2 to make the green a little more vibrant at 100%
+      color = `hsl(calc(${percentage} * 1.2), 100%, 40%)`;
     
     } else if (color.startsWith('--')) {
       color = `var(${color})`;
     }
     
-    return { percentage, color, height, position };
-  },
+    return { percentage, color, size, position };
+  }
 
-  addProgressBorder(progressBar, cardType, card) {
-    const { percentage, color, height, position } = progressBar;
-    let target;
+  static addProgressBorder(progressBar, cardRef, cardType) {
+    const { percentage, color, size, position } = progressBar;
 
-    switch (cardType) {
-      case 'hui-entity-card':
-        target = card.shadowRoot.querySelector('ha-card .footer');
-        break;
-      case 'hui-tile-card':
-        target = card.shadowRoot.querySelector('ha-card .background');
-        break;
-      default:
-        target = card.shadowRoot.querySelector('ha-card');
-    };
+    let target = cardRef.shadowRoot.querySelector('ha-card');
+    target.style.overflow = 'hidden';
 
     const progressEle = document.createElement('div');
     
     progressEle.style.position = 'absolute';
     progressEle.style.width = `${percentage}%`;
-    progressEle.style.height = height;
+    progressEle.style.height = size;
     progressEle.style.backgroundColor = color;
     position === 'top' ? progressEle.style.top = 0 : progressEle.style.bottom = 0;
     target.appendChild(progressEle);
-  },
+  }
   
-  log(...msg) {
+  static log(...msg) {
     console.log("ProgressBorder Debug:", ...msg);
-  },
+  }
 
-  warn(...msg) {
+  static warn(...msg) {
     console.warn("ProgressBorder Debug:", ...msg);
-  },
-  
+  }
+}
 
-  init() {
-    window.customUI.initDone = true;
-    window.customUI.installCustomHooks();
-    window.CUSTOM_UI_LIST = window.CUSTOM_UI_LIST || [];
-    window.CUSTOM_UI_LIST.push({
-      name: Name,
-      version: `${Version} ${Description}`,
-      url: Url
-    });
-  },
-
-};
-window.customUI.init();
+new ProgressBorder();
