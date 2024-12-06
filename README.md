@@ -20,11 +20,12 @@ A HACS integration which adds a feature to display a simple progress bar with cu
 
 | Name | Type | Default | Description |
 |------|:----:|:-------:|-------------|
-| entityId | string |  | Entity id of a sensor that goes from 0 - 100
+| entity | string |  | Entity id of a sensor that goes from 0 - 100
 | attribute | string |  | Attribute of the tile entity that goes from 0 - 100
-| inverse | boolean | false | Show the inverse percentage (ie, 85% -> 15%)
-| size | string | 3px | CSS value for progress bar height
-| color | string | --primary-color | Progress bar color. Can be any valid CSS class, a HASS [CSS color variable](#css-color-variables), or the keyword `meter` which will change color based on progress on a gradient from 0 = red to 100 = green
+| inverse | boolean | `false` | Show the inverse percentage (ie, 85% -> 15%)
+| size | string | `--feature-height` or `3px` if position is specified | CSS value for progress bar height
+| color | string | `--primary-color` | Progress bar color. Can be any valid CSS value, a HASS [CSS color variable](#css-color-variables), or the keyword `meter` which will change color based on progress on a gradient from 0 = red to 100 = green
+| background | string | 20% opacity variant of `color` value | Progress bar background color. Can be any valid CSS value, a HASS [CSS color variable](#css-color-variables)
 <!-- | template | integer |  | Template string which evaluates to an integer from 0 - 100 -->
 <!-- | position | string | bottom | Progress bar position, only accepts `top` or `bottom` -->
 <!-- | time | [time object](#time-object-options) | | Time to derive progress from
@@ -51,14 +52,26 @@ Your Home Assistant theme may also provide additional CSS variables.
 
 ## Examples
 
-#### Battery Meter:
+#### Battery Meter anchored to bottom edge:
 ```
 type: tile
 entity: binary_sensor.kitchen_sink_leak
 features:
   - type: custom:progress-bar-card-feature
-    entityId: sensor.kitchen_sink_leak_battery_level
+    entity: sensor.kitchen_sink_leak_battery_level
     color: meter
+    position: bottom
+```
+
+#### Semi-transparent custom background color from a variable, different from the color value:
+```
+type: tile
+entity: binary_sensor.closet_motion
+features:
+  - type: custom:progress-bar-feature
+    entity: sensor.closet_motion_battery_level
+    color: --error-color
+    background: hsla(from var(--warning-color) h s l / .2)
 ```
 
 #### Cover Position:
@@ -89,4 +102,4 @@ progress:
 - Template value support
 - Time value support
 - Visual editor
-- Progress bar positioning (top, bottom, left, right, around the card border)
+- More progress bar positioning (left, right, around the card border)
