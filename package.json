@@ -9,7 +9,7 @@
     "hass",
     "lovelace"
   ],
-  "main": "src/hass-progress-bar-feature.js",
+  "main": "hass-progress-bar-feature.js",
   "repository": {
     "type": "git",
     "url": "git@github.com:ytilis/hass-progress-bar-feature.git"
