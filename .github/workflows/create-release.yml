@@ -1,0 +1,27 @@
+name: Create Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Get package info
+        id: package-info
+        run: echo "::set-output name=version::$(jq -r '.version' package.json)"
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          name: v${{ steps.package-info.outputs.version }}
+          tag_name: v${{ steps.package-info.outputs.version }}
+          draft: true
+          files: hass-progress-bar-feature.js

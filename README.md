@@ -99,7 +99,7 @@ progress:
 
 ## TODO
 
-- Template value support
-- Time value support
-- Visual editor
-- More progress bar positioning (left, right, around the card border)
+- [ ] Template value support
+- [ ] Time value support
+- [ ] Visual editor
+- [ ] More progress bar positioning (left, right, around the card border)

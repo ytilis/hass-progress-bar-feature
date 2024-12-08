@@ -1,0 +1,29 @@
+{
+  "name": "hass-progress-bar",
+  "version": "1.0.0",
+  "description": "Progress Bar Feature for Home Assistant cards",
+  "license": "MIT",
+  "keywords": [
+    "home-assistant",
+    "homeassistant",
+    "hass",
+    "lovelace"
+  ],
+  "main": "src/hass-progress-bar-feature.js",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:ytilis/hass-progress-bar-feature.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ytilis/hass-progress-bar-feature/issues"
+  },  
+  "author": {
+    "name": "Yury Tilis",
+    "email": "ytilis@gmail.com"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
