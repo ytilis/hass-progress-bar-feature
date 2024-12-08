@@ -53,17 +53,34 @@ Your Home Assistant theme may also provide additional CSS variables.
 ## Examples
 
 #### Battery Meter anchored to bottom edge:
+<img width="230" alt="image" src="https://github.com/user-attachments/assets/b65ac5cd-f0b8-4e67-be54-7b29f7e2a1f8">
+
 ```
 type: tile
 entity: binary_sensor.kitchen_sink_leak
 features:
-  - type: custom:progress-bar-card-feature
+  - type: custom:progress-bar-feature
     entity: sensor.kitchen_sink_leak_battery_level
     color: meter
     position: bottom
 ```
+#### Battery Meter anchored to top edge with no background color:
+<img width="230" alt="image" src="https://github.com/user-attachments/assets/df9dbfdc-dcf9-4084-88da-b95a2b4c75dd">
+
+```
+type: tile
+entity: binary_sensor.kitchen_sink_leak
+features:
+  - type: custom:progress-bar-feature
+    entity: sensor.kitchen_sink_leak_battery_level
+    color: meter
+    background: none
+    position: top
+```
 
 #### Semi-transparent custom background color from a variable, different from the color value:
+<img width="230" alt="image" src="https://github.com/user-attachments/assets/4a8f0ab8-9a70-476d-a783-68a0cce3ffd0">
+
 ```
 type: tile
 entity: binary_sensor.closet_motion
@@ -74,7 +91,9 @@ features:
     background: hsla(from var(--warning-color) h s l / .2)
 ```
 
-#### Cover Position:
+#### Cover Position from attribute:
+<img width="230" alt="image" src="https://github.com/user-attachments/assets/ead33c02-ac16-4a2b-ac28-9dee5548ea09">
+
 ```
 type: tile
 entity: cover.bedroom_window
