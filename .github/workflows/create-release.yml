@@ -24,4 +24,4 @@ jobs:
           name: v${{ steps.package-info.outputs.version }}
           tag_name: v${{ steps.package-info.outputs.version }}
           draft: true
-          files: hass-progress-bar-feature.js
+          files: src/hass-progress-bar-feature.js
