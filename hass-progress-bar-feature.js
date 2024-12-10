@@ -134,7 +134,6 @@ class ProgressBarFeature extends LitElement {
 
     if (attribute || entity) {
       progress = ProgressBarFeature.readEntityOrAttribute(attribute || entity, states, stateObj);
-      progress = stateObj?.attributes[attribute];
     
     } else if (template) {
       progress = ProgressBarFeature.resolveTemplate(template);
