@@ -31,6 +31,20 @@ class ProgressBarFeature extends LitElement {
     this.config = config;
   }
 
+  static readEntityOrAttribute(id, states, stateObj) {
+    return id.includes('.')
+      ? states?.[id]?.state
+      : stateObj?.attributes[id];
+  }
+
+  static parseTimeString(time) {
+    if (!time) {
+      return 0;
+    }
+    const [ hours, minutes, seconds ] = time.split(':').map(Number);
+    return (hours * 60 * 60) + (minutes * 60) + seconds;
+  }
+
   static resolveCssVars(value) {
     return value.startsWith('--') ? `var(${value})` : value;
   }
@@ -62,31 +76,49 @@ class ProgressBarFeature extends LitElement {
     return template;
   }
 
-  static resolveTimeProgress(time) {
-    // if (time.initial || time.remaining) {
-    //   console.log(time.initial, time.remaining);
-    //   if (!time.initial || !time.remaining) {
-    //     ProgressBarFeature.warn('time.initial & time.remaining are co-dependent');
-    //     return;
-    //   }
-    //   const initial = new Date(time.initial);
-    //   const remaining = new Date(time.remaining);
-    //   const total = remaining - initial;
-    //   const elapsed = new Date() - initial;
-    //   progress = Math.round((elapsed / total) * 100);
-    // }
+  static resolveTimeProgress(time, states, stateObj) {
+    if (time.initial || time.remaining) {
+      if (!time.initial || !time.remaining) {
+        ProgressBarFeature.warn('time.initial & time.remaining are co-dependent');
+        return;
+      }
+      const initial_value = ProgressBarFeature.readEntityOrAttribute(time.initial, states, stateObj);
+      const remaining_value = ProgressBarFeature.readEntityOrAttribute(time.remaining, states, stateObj);
+      if (!initial_value || !remaining_value) {
+        ProgressBarFeature.warn(
+          'Invalid values for time.initial and/or time.remaining, must be HH:MM:SS',
+          { initial_value, remaining_value }
+        );
+        return;
+      }
+      
+      const initial = ProgressBarFeature.parseTimeString(initial_value);
+      const remaining = ProgressBarFeature.parseTimeString(remaining_value);
+      const elapsed = initial - remaining;
+      return Math.round((elapsed / initial) * 100);
+    }
 
-    // if (time.start || time.end) {
-    //   if (!time.start || !time.end) {
-    //     ProgressBarFeature.warn('time.start & time.end are co-dependent');
-    //     return;
-    //   }
-    //   const start = new Date(time.start);
-    //   const end = new Date(time.end);
-    //   const total = end - start;
-    //   const elapsed = new Date() - start;
-    //   progress = Math.round((elapsed / total) * 100);
-    // }
+    if (time.start || time.end) {
+      if (!time.start || !time.end) {
+        ProgressBarFeature.warn('time.start & time.end are co-dependent');
+        return;
+      }
+      const start_value = ProgressBarFeature.readEntityOrAttribute(time.start, states, stateObj);
+      const end_value = ProgressBarFeature.readEntityOrAttribute(time.end, states, stateObj);
+      if (!start_value || !end_value) {
+        ProgressBarFeature.warn(
+          'Invalid values for time.start and/or time.end, must be Date strings',
+          { start_value, end_value }
+        );
+        return;
+      }
+
+      const start = new Date(start_value);
+      const end = new Date(end_value);
+      const total = end - start;
+      const elapsed = new Date() - start;
+      return Math.round((elapsed / total) * 100);
+    }
   }
 
   static resolveProgress(config, stateObj, states) {
@@ -100,17 +132,15 @@ class ProgressBarFeature extends LitElement {
 
     let progress = 0;
 
-    if (template) {
-      progress = ProgressBarFeature.resolveTemplate(template);
-
-    } else if (attribute) {
+    if (attribute || entity) {
+      progress = ProgressBarFeature.readEntityOrAttribute(attribute || entity, states, stateObj);
       progress = stateObj?.attributes[attribute];
     
-    } else if (entity) {
-      progress = states?.[entity]?.state;
-    
+    } else if (template) {
+      progress = ProgressBarFeature.resolveTemplate(template);
+
     } else if (time) {
-      progress = ProgressBarFeature.resolveTimeProgress(time);
+      progress = ProgressBarFeature.resolveTimeProgress(time, states, stateObj);
     
     } else {
       // ProgressBarFeature.error('Must pass entity, attribute, time, or template');

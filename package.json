@@ -1,6 +1,6 @@
 {
   "name": "hass-progress-bar-feature",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Progress Bar Feature for Home Assistant cards",
   "license": "MIT",
   "keywords": [
