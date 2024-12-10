@@ -105,9 +105,11 @@ features:
 ```
 
 #### Time based machine cycle progress
+<img width="230" alt="image" src="https://github.com/user-attachments/assets/f0eb188c-d95b-4f91-8cb1-b86c375473f9">
+
 ```
 type: tile
-entity: sensor.washer
+entity: sensor.dryer
 features:
   - type: custom:progress-bar-feature
     position: bottom
@@ -115,7 +117,7 @@ features:
       initial: initial_time
       remaining: remain_time
 ```
-
+OR
 ```
 type: tile
 entity: sensor.dryer
